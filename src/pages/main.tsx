@@ -142,12 +142,12 @@ export function Component() {
         <div className="p-6 md:p-8 lg:p-10">
           <div className="flex items-center justify-between mb-6 md:mb-8 lg:mb-10">
             <h2 className="text-2xl font-bold md:text-3xl lg:text-4xl">Travel Risk Assessment</h2>
-            <div className="flex items-center gap-4 md:gap-6 lg:gap-8">
+            {/* <div className="flex items-center gap-4 md:gap-6 lg:gap-8">
               <Button size="sm" variant="outline">
                 Export
               </Button>
               <Button size="sm">Assess Risk</Button>
-            </div>
+            </div> */}
           </div>
           <Card>
             <CardHeader>

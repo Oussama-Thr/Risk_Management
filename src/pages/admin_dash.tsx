@@ -18,14 +18,14 @@ To read more about using these font, please visit the Next.js documentation:
 - Pages Directory: https://nextjs.org/docs/pages/building-your-application/optimizing/fonts
 **/
 import Link from "next/link"
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu"
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from "@/components/Admin-Dashboard/navigation-menu"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuCheckboxItem } from "@/components/Admin-Dashboard/dropdown-menu"
+import { Button } from "@/components/Admin-Dashboard/button"
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from "@/components/Admin-Dashboard/card"
+import { Progress } from "@/components/Admin-Dashboard/progress"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/Admin-Dashboard/tabs"
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/Admin-Dashboard/table"
+import { Badge } from "@/components/Admin-Dashboard/badge"
 
 export function Admin_Dash() {
   return (

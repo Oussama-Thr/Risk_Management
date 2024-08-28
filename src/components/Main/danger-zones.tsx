@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import '../styles/leafletCluster.css'
+import '../../styles/leafletCluster.css'
 
 // Dynamically import leaflet with no SSR (Server-Side Rendering)
 const NoSSRLeaflet = dynamic(() => import('leaflet'), {

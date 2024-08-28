@@ -1,10 +1,13 @@
 "use client";
 
-import { Component } from "@/pages/main";
+import { Main } from "../pages/main";
+import { SessionProvider } from "next-auth/react";
 
 export default function Home() {
 
   return (
-    <Component />
+    <SessionProvider>
+      <Main />
+    </SessionProvider>
   );
 }

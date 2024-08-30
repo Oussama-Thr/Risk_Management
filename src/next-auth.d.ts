@@ -6,6 +6,7 @@ declare module 'next-auth' {
       id: string;
       email: string;
       username: string;
+      role: string;
     } & DefaultSession['user'];
   }
 
@@ -13,5 +14,17 @@ declare module 'next-auth' {
     id: string;
     email: string;
     username: string;
+    role: string;
+  }
+
+  interface Report {
+    _id: string;
+    title: string;
+    location: string;
+    description: string;
+    date: string;
+    riskLevel: number;
+    username: string;
+    status: string;
   }
 }

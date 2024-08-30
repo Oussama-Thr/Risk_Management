@@ -16,12 +16,14 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { toast } from "sonner";
 import "../app/globals.css";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import Logo from "@/components/logo";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -30,16 +32,16 @@ export default function Login() {
   const handleSubmit = async (event: any) => {
     event.preventDefault();
 
-    const email = (document.getElementById("email") as HTMLInputElement)?.value;
+    const identifier = (document.getElementById("identifier") as HTMLInputElement)?.value;
     const password = (document.getElementById("password") as HTMLInputElement)?.value;
-    if (!email || !password) {
+    if (!identifier || !password) {
       toast.error("Please fill in all fields");
       return;
     }
 
     const result = await signIn("credentials", {
       redirect: false,
-      email,
+      identifier,
       password,
     });
 
@@ -47,14 +49,15 @@ export default function Login() {
       toast.error(result.error);
     } else {
       toast.success("Login successful");
-      clearForm();
-      router.push("/");
-    }
-  };
 
-  const clearForm = () => {
-    (document.getElementById("email") as HTMLInputElement).value = "";
-    (document.getElementById("password") as HTMLInputElement).value = "";
+      await fetch("/api/auth/session?update");
+
+      if (session?.user?.role === "admin") {
+        router.push("/admin_dash");
+      } else {
+        router.push("/");
+      }
+    }
   };
 
   return (
@@ -62,7 +65,7 @@ export default function Login() {
       <Card className="w-full max-w-md bg-gray-800 text-gray-100">
         <CardHeader>
           <Link href="/" className="flex items-center gap-2" prefetch={false}>
-            <BeanIcon className="w-6 h-6" />
+            <Logo className="w-6 h-6" />
             <span className="text-lg font-bold">TravelSafe</span>
           </Link>
           <CardTitle className="text-2xl font-bold text-center">
@@ -77,15 +80,15 @@ export default function Login() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label
-                  htmlFor="email"
+                  htmlFor="identifier"
                   className="text-sm font-medium text-gray-200"
                 >
                   Email
                 </Label>
                 <Input
-                  id="email"
-                  placeholder="name@example.com"
-                  type="email"
+                  id="identifier"
+                  placeholder="name@example.com or username"
+                  type="text"
                   className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -148,25 +151,5 @@ export default function Login() {
         </CardFooter>
       </Card>
     </div>
-  );
-}
-interface BeanIconProps extends React.SVGProps<SVGSVGElement> {}
-function BeanIcon(props: BeanIconProps) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M10.165 6.598C9.954 7.478 9.64 8.36 9 9c-.64.64-1.521.954-2.402 1.165A6 6 0 0 0 8 22c7.732 0 14-6.268 14-14a6 6 0 0 0-11.835-1.402Z" />
-      <path d="M5.341 10.62a4 4 0 1 0 5.279-5.28" />
-    </svg>
   );
 }

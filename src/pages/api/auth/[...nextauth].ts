@@ -9,37 +9,45 @@ export default NextAuth({
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "text", placeholder: "name@example.com" },
+        identifier: { label: "Email or Username", type: "text", placeholder: "Enter your email or username",},
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const { email, password } = credentials;
-        
+        const { identifier, password } = credentials;
+
         await connectToDatabase();
-        
-        console.log('Password from the browser :', password);
-        const user = await User.findOne({ email });
-        console.log('Hashed password : ', user.password);
-        
+
+        // Find user by either email or username
+        const user = await User.findOne({
+          $or: [{ email: identifier }, { username: identifier }],
+        });
+
         if (!user) {
-          throw new Error('No user found with the given email');
+          throw new Error("No user found with the given email or username");
         }
+
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) {
-          throw new Error('Incorrect password');
+          throw new Error("Incorrect password");
         }
-      
-        return { id: user._id.toString(), email: user.email, username: user.username };
-      }
-      
+
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          username: user.username,
+          role: user.role,
+        };
+      },
     }),
   ],
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.username = user.username;
+        token.role = user.role;
       }
       return token;
     },
@@ -48,18 +56,19 @@ export default NextAuth({
         session.user.id = token.id as string;
         session.user.email = token.email as string;
         session.user.username = token.username as string;
+        session.user.role = token.role as string;
       }
       return session;
     },
   },
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
   },
   jwt: {
     secret: process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET,
   },
   pages: {
-    signIn: '/login',
+    signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
 });

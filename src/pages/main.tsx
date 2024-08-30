@@ -1,45 +1,108 @@
 import Link from "next/link";
 import { Button } from "@/components/Main/button";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/Main/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/Main/card";
 import { Badge } from "@/components/Main/badge";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/Main/table";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/Main/table";
 import DangerZones from "@/components/Main/danger-zones";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-
+import { signOut, useSession } from "next-auth/react";
+import Logo from "@/components/logo";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from "@/components/Main/dropdown-menu";
+import { ChevronDownIcon } from "lucide-react";
 
 export function Main() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
+  const isAdmin = session?.user?.role === "admin";
 
   const handleLogin = () => {
-    router.push("/login"); 
+    router.push("/login");
   };
 
   const handleRefresh = () => {
-    router.push("/"); 
+    router.push("/");
+  };
+
+  const handleLogout = async () => {
+    await signOut({
+      callbackUrl: "/login",
+    });
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="bg-[#007bff] text-white py-4 px-6 flex items-center justify-between md:px-8 lg:px-10">
+    <div className="flex flex-col min-h-screen bg-backgroud">
+      <header className="bg-[#00000] text-black py-4 px-6 flex items-center justify-between md:px-8 lg:px-10 z-10 shadow">
         <Link href="/" className="flex items-center gap-2" prefetch={false}>
-          <BeanIcon className="w-6 h-6" />
+          <Logo className="w-6 h-6" />
           <span className="text-lg font-bold">TravelSafe</span>
         </Link>
         <nav className="flex items-center gap-4 md:gap-6 lg:gap-8">
-          <Link href="#" className="text-sm font-medium hover:underline underline-offset-4 md:text-base" prefetch={false}>
+          <Link
+            href="#"
+            className="text-sm font-medium hover:underline underline-offset-4 md:text-base"
+            prefetch={false}
+          >
             Destination Risks
           </Link>
-          <Link href="/incident_report" className="text-sm font-medium hover:underline underline-offset-4 md:text-base" prefetch={false}>
+          <Link
+            href="/incident_report"
+            className="text-sm font-medium hover:underline underline-offset-4 md:text-base"
+            prefetch={false}
+          >
             Incident Reporting
           </Link>
+          {isAdmin && (
+            <Link
+              href="/admin_dash"
+              className="text-sm font-medium hover:underline underline-offset-4 md:text-base"
+              prefetch={false}
+            >
+              Admin
+            </Link>
+          )}
         </nav>
         {isAuthenticated ? (
-          <span className="text-sm font-medium text-white">
-            Welcome, {session.user?.username}
-          </span>
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="flex items-center space-x-1">
+                  <span className="text-sm font-medium text-black">
+                    Welcome, {session.user?.username}
+                  </span>
+                  <ChevronDownIcon className="w-4 h-4" />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{session.user?.username}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleLogout}>
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
         ) : (
           <Button size="sm" onClick={handleLogin}>
             Login
@@ -52,7 +115,9 @@ export function Main() {
             <h3 className="text-lg font-bold md:text-xl lg:text-2xl">
               Travel Risk
             </h3>
-            <Button size="sm" onClick={handleRefresh}>Refresh</Button>
+            <Button size="sm" onClick={handleRefresh}>
+              Refresh
+            </Button>
           </div>
           <div className="space-y-4 md:space-y-6 lg:space-y-8">
             <Card>
@@ -91,7 +156,9 @@ export function Main() {
                     <Badge variant="default">High</Badge>
                   </li>
                   <li className="flex items-center justify-between">
-                    <div className="font-medium">Transportation Disruptions</div>
+                    <div className="font-medium">
+                      Transportation Disruptions
+                    </div>
                     <Badge variant="default">High</Badge>
                   </li>
                 </ul>
@@ -109,7 +176,8 @@ export function Main() {
             <CardHeader>
               <CardTitle>Travel Risk Map</CardTitle>
               <CardDescription>
-                Evaluate the likelihood and impact of potential risks across different destinations.
+                Evaluate the likelihood and impact of potential risks across
+                different destinations.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -121,26 +189,5 @@ export function Main() {
         </div>
       </div>
     </div>
-  );
-}
-
-interface BeanIconProps extends React.SVGProps<SVGSVGElement> {}
-function BeanIcon(props: BeanIconProps) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M10.165 6.598C9.954 7.478 9.64 8.36 9 9c-.64.64-1.521.954-2.402 1.165A6 6 0 0 0 8 22c7.732 0 14-6.268 14-14a6 6 0 0 0-11.835-1.402Z" />
-      <path d="M5.341 10.62a4 4 0 1 0 5.279-5.28" />
-    </svg>
   );
 }

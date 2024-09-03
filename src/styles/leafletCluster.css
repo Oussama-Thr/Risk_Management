@@ -2,17 +2,23 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #ffffff; /* Consistent white color */
+  color: #ffffff;
   font-size: 14px;
-  font-weight: bold; /* Makes the text stand out more */
+  font-weight: bold;
   border-radius: 50%;
-  border: 2px solid #ffffff; /* Consistent white border */
+  border: 2px solid #ffffff;
   width: 40px;
   height: 40px;
   text-align: center;
-  background-color: rgba(0, 0, 0, 0.7); /* Slightly darker background for better contrast */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Subtle shadow for a 3D effect */
-  line-height: 1; /* Ensures text is centered properly */
+  background-color: rgba(0, 0, 0, 0.7);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  line-height: 1;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.custom-cluster-icon:hover {
+  background-color: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
 }
 
 .cluster-icon {
@@ -23,10 +29,16 @@
   justify-content: center;
   align-items: center;
   font-size: 12px;
-  color: #ffffff; /* Consistent white color */
-  font-weight: bold; /* Matches the custom cluster icon */
+  color: #ffffff;
+  font-weight: bold;
   text-align: center;
-  background-color: rgba(0, 0, 0, 0.5); /* Slightly transparent background */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Matches the custom cluster icon */
-  line-height: 1; /* Ensures text is centered properly */
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  line-height: 1;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.cluster-icon:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+  transform: scale(1.05);
 }

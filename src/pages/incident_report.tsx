@@ -16,12 +16,17 @@ import { toast } from "sonner";
 import Logo from "@/components/logo";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/Main/dropdown-menu";
 import { ChevronDownIcon } from "lucide-react";
+import { useState } from "react";
+import { geocode } from "@/utils/geocode";
 
 export default function IncidentReport() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
   const isAdmin = session?.user?.role === "admin";
+  
+  const [location, setLocation] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
 
   const handleLogin = () => {
     router.push("/login");
@@ -37,16 +42,35 @@ export default function IncidentReport() {
     });
   };
 
+  const handleLocationChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    setLocation(inputValue);
+
+    if (inputValue.length > 2) {
+      try {
+        const results = await geocode(inputValue);
+        setSuggestions(results);
+      } catch (error) {
+        console.error("Geocoding error:", error);
+      }
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setLocation(suggestion.formatted_address);
+    setSuggestions([]);
+  };
+
   const handleReportSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Get the form data
     const formData = new FormData(e.currentTarget);
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
     const location = formData.get("location") as string;
 
-    // Get the username from the session
     const username = session?.user?.username;
 
     if (!username) {
@@ -54,7 +78,6 @@ export default function IncidentReport() {
       return;
     }
 
-    // Prepare the report data
     const reportData = {
       title,
       description,
@@ -62,7 +85,6 @@ export default function IncidentReport() {
       username,
     };
 
-    // Send a POST request to the API endpoint
     try {
       const response = await fetch("/api/reports", {
         method: "POST",
@@ -74,7 +96,7 @@ export default function IncidentReport() {
 
       if (response.ok) {
         const result = await response.json();
-        toast.success(result.message); // Show success message
+        toast.success(result.message);
         clearForm();
       } else {
         toast.error("Failed to submit the report");
@@ -86,8 +108,9 @@ export default function IncidentReport() {
   };
 
   const clearForm = () => {
-    (document.getElementById("email") as HTMLInputElement).value = "";
-    (document.getElementById("password") as HTMLInputElement).value = "";
+    (document.getElementById("title") as HTMLInputElement).value = "";
+    (document.getElementById("location") as HTMLInputElement).value = "";
+    (document.getElementById("description") as HTMLInputElement).value = "";
   };
 
   if (status === "loading") {
@@ -255,7 +278,27 @@ export default function IncidentReport() {
                   >
                     Location
                   </label>
-                  <Input id="location" name="location" type="text" required />
+                  <Input
+                    id="location"
+                    name="location"
+                    type="text"
+                    value={location}
+                    onChange={handleLocationChange}
+                    required
+                  />
+                  {suggestions.length > 0 && (
+                    <ul className="bg-white border border-gray-300 rounded mt-1">
+                      {suggestions.map((suggestion) => (
+                        <li
+                          key={suggestion.place_id}
+                          className="p-2 cursor-pointer hover:bg-gray-100"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                        >
+                          {suggestion.formatted_address}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div>
                   <label

@@ -95,7 +95,7 @@ export default function Signup() {
                 <Label htmlFor="name" className="text-sm font-medium text-gray-200">
                   Username
                 </Label>
-                <Input id="username" placeholder="John Doe" className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500"/>
+                <Input id="username" placeholder="A unique one" className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500"/>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-200">
@@ -113,6 +113,7 @@ export default function Signup() {
                 <div className="relative">
                   <Input
                     id="password"
+                    placeholder="Exeeds 8 characters"
                     type={showPassword ? "text" : "password"}
                     className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 pr-10"
                   />

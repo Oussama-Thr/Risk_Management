@@ -83,7 +83,7 @@ export default function Login() {
                   htmlFor="identifier"
                   className="text-sm font-medium text-gray-200"
                 >
-                  Email
+                  Email or Username
                 </Label>
                 <Input
                   id="identifier"
@@ -102,6 +102,7 @@ export default function Login() {
                 <div className="relative">
                   <Input
                     id="password"
+                    placeholder="Your Password"
                     type={showPassword ? "text" : "password"}
                     className="bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500 pr-10"
                   />

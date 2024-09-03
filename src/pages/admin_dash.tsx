@@ -42,34 +42,83 @@ import { Badge } from "@/components/Admin-Dashboard/badge";
 import Logo from "@/components/logo";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
 import { toast } from "sonner";
+
+interface Report {
+  _id: string;
+  username: string;
+  title: string;
+  description: string;
+  riskLevel: string;
+  location: string;
+  status: string;
+  date: string;
+}
 
 export default function Admin_Dash() {
   const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
   const router = useRouter();
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedRiskLevels, setSelectedRiskLevels] = useState<string[]>([]);
 
   const handleLogout = async () => {
     await signOut({
       callbackUrl: "/login",
     });
   };
-  
-  useEffect(() => {
-    // Wait until the session status is 'authenticated' before checking the role
-    if (status === "loading") return; // it will make the qeue wait until it loads
 
-    if (status === "authenticated") {
-      if (session.user.role !== "admin") {
-        router.push("/");
-      }
-    } else {
-      // If the user is not authenticated, redirect to the login page or home page
-      router.push("/");
+  useEffect(() => {
+    if (status === "loading") return;
+    if (session?.user?.role !== "admin") {
+      router.push("/"); // Redirect non-admin users
+      return;
     }
-  }, [session, status]);
+
+    const fetchReports = async () => {
+      try {
+        const response = await fetch("/api/reports");
+        if (!response.ok) throw new Error("Failed to fetch reports");
+        const data = await response.json();
+        setReports(data);
+      } catch (error) {
+        setError("Failed to load reports");
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, [status, session, router]);
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center space-x-4">
+          <div className="spinner"></div>
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+
+  const handleRiskLevelChange = (riskLevel: string) => {
+    setSelectedRiskLevels((prev) =>
+      prev.includes(riskLevel)
+        ? prev.filter((level) => level !== riskLevel)
+        : [...prev, riskLevel]
+    );
+  };
+
+  const filteredReports = reports.filter(
+    (report) =>
+      selectedRiskLevels.length === 0 ||
+      selectedRiskLevels.includes(report.riskLevel)
+  );
 
   if (status === "loading") {
     return (
@@ -128,15 +177,16 @@ export default function Admin_Dash() {
           <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-              {isAuthenticated ? (
-                <div className="flex items-center space-x-1">
-                  <span className="text-sm font-medium text-black">
-                    Welcome, {session.user?.username}
-                  </span>
-                  <ChevronDownIcon className="w-4 h-4" />
-                </div>): (
-                  toast.error('you dont have the rights to access! '),
-                  router.push('/login')
+                {isAuthenticated ? (
+                  <div className="flex items-center space-x-1">
+                    <span className="text-sm font-medium text-black">
+                      Welcome, {session.user?.username}
+                    </span>
+                    <ChevronDownIcon className="w-4 h-4" />
+                  </div>
+                ) : (
+                  (toast.error("you dont have the rights to access! "),
+                  router.push("/login"))
                 )}
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -144,7 +194,9 @@ export default function Admin_Dash() {
                 <DropdownMenuSeparator />
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  Logout
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </>
@@ -241,201 +293,127 @@ export default function Admin_Dash() {
                 </div>
               </div>
               <TabsContent value="week">
-                <Card x-chunk="dashboard-05-chunk-3">
-                  <CardHeader className="px-7">
-                    <CardTitle>Incident Reports</CardTitle>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-2xl font-bold">
+                      Incident Reports
+                    </CardTitle>
                     <CardDescription>
-                      Recent incident reports for your travel operations.
+                      Manage and review incident reports submitted by users.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Incident</TableHead>
-                          <TableHead className="hidden sm:table-cell">
-                            Location
-                          </TableHead>
-                          <TableHead className="hidden sm:table-cell">
-                            Risk Level
-                          </TableHead>
-                          <TableHead className="hidden md:table-cell">
-                            Date
-                          </TableHead>
-                          <TableHead className="text-right">Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow className="bg-accent">
-                          <TableCell>
-                            <div className="font-medium">Civil Unrest</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                              Acme Hotel, Paris
+                  <CardContent className="px-6">
+                    <div className="flex flex-col space-y-4">
+                      <Tabs defaultValue="all" className="w-full">
+                        <TabsContent value="all" className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-bold">Reports</h2>
+                            <div className="flex items-center space-x-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    Filter
+                                    <ChevronDownIcon className="ml-2 h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuCheckboxItem
+                                    checked={selectedRiskLevels.includes("Low")}
+                                    onCheckedChange={() =>
+                                      handleRiskLevelChange("Low")
+                                    }
+                                  >
+                                    Low Risk
+                                  </DropdownMenuCheckboxItem>
+                                  <DropdownMenuCheckboxItem
+                                    checked={selectedRiskLevels.includes(
+                                      "Medium"
+                                    )}
+                                    onCheckedChange={() =>
+                                      handleRiskLevelChange("Medium")
+                                    }
+                                  >
+                                    Medium Risk
+                                  </DropdownMenuCheckboxItem>
+                                  <DropdownMenuCheckboxItem
+                                    checked={selectedRiskLevels.includes(
+                                      "High"
+                                    )}
+                                    onCheckedChange={() =>
+                                      handleRiskLevelChange("High")
+                                    }
+                                  >
+                                    High Risk
+                                  </DropdownMenuCheckboxItem>
+                                  <DropdownMenuCheckboxItem
+                                    checked={selectedRiskLevels.includes(
+                                      "Undefined"
+                                    )}
+                                    onCheckedChange={() =>
+                                      handleRiskLevelChange("Undefined")
+                                    }
+                                  >
+                                    Undefined
+                                  </DropdownMenuCheckboxItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            Paris, France
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge className="text-xs" variant="secondary">
-                              High
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            2023-06-23
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge className="text-xs" variant="outline">
-                              Resolved
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <div className="font-medium">Food Poisoning</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                              Acme Resort, Bali
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            Bali, Indonesia
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge className="text-xs" variant="outline">
-                              Medium
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            2023-06-24
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge className="text-xs" variant="secondary">
-                              Open
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <div className="font-medium">Theft</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                              Acme Hotel, London
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            London, UK
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge className="text-xs" variant="secondary">
-                              High
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            2023-06-25
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge className="text-xs" variant="outline">
-                              Resolved
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <div className="font-medium">Natural Disaster</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                              Acme Resort, Bali
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            Bali, Indonesia
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge className="text-xs" variant="secondary">
-                              High
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            2023-06-26
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge className="text-xs" variant="secondary">
-                              Open
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <div className="font-medium">Civil Unrest</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                              Acme Hotel, Paris
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            Paris, France
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge className="text-xs" variant="secondary">
-                              High
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            2023-06-23
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge className="text-xs" variant="outline">
-                              Resolved
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <div className="font-medium">Food Poisoning</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                              Acme Resort, Bali
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            Bali, Indonesia
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge className="text-xs" variant="outline">
-                              Medium
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            2023-06-24
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge className="text-xs" variant="secondary">
-                              Open
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>
-                            <div className="font-medium">Natural Disaster</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                              Acme Resort, Bali
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            Bali, Indonesia
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge className="text-xs" variant="secondary">
-                              High
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            2023-06-26
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge className="text-xs" variant="secondary">
-                              Open
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                          </div>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Title</TableHead>
+                                <TableHead>Location</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Risk Level</TableHead>
+                                <TableHead>Reported by</TableHead>
+                                <TableHead>Status</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {filteredReports.map((report: Report) => (
+                                <TableRow key={report._id}>
+                                  <TableCell>{report.title}</TableCell>
+
+                                  <TableCell>{report.location}</TableCell>
+
+                                  <TableCell className="hidden sm:table-cell">
+                                    {report.description}
+                                  </TableCell>
+
+                                  <TableCell>
+                                    {new Date(report.date).toLocaleDateString()}
+                                  </TableCell>
+
+                                  <TableCell>
+                                      <Badge
+                                        variant="outline"
+                                        className="capitalize"
+                                      >
+                                        {report.riskLevel}
+                                      </Badge>
+                                  </TableCell>
+
+                                  <TableCell className="hidden sm:table-cell">
+                                    {report.username}
+                                  </TableCell>
+
+                                  <TableCell>
+                                      <Badge
+                                        variant="outline"
+                                        className="capitalize"
+                                      >
+                                        {report.status}
+                                      </Badge>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TabsContent>
+                      </Tabs>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>

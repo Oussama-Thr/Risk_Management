@@ -14,19 +14,31 @@ import { signOut, useSession } from "next-auth/react";
 import { Badge } from "@/components/Main/badge";
 import { toast } from "sonner";
 import Logo from "@/components/logo";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/Main/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/Main/dropdown-menu";
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { geocode } from "@/utils/geocode";
+
+interface Suggestion {
+  place_id: string;
+  formatted_address: string;
+}
 
 export default function IncidentReport() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
   const isAdmin = session?.user?.role === "admin";
-  
+
   const [location, setLocation] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
   const handleLogin = () => {
     router.push("/login");
@@ -42,13 +54,16 @@ export default function IncidentReport() {
     });
   };
 
-  const handleLocationChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handleLocationChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const inputValue = e.target.value;
     setLocation(inputValue);
 
     if (inputValue.length > 2) {
       try {
-        const results = await geocode(inputValue);
+        const results: Suggestion[] = await geocode(inputValue);
         setSuggestions(results);
       } catch (error) {
         console.error("Geocoding error:", error);
@@ -58,7 +73,7 @@ export default function IncidentReport() {
     }
   };
 
-  const handleSuggestionClick = (suggestion) => {
+  const handleSuggestionClick = (suggestion: Suggestion) => {
     setLocation(suggestion.formatted_address);
     setSuggestions([]);
   };
@@ -131,14 +146,14 @@ export default function IncidentReport() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="bg-[#000000] text-white py-4 px-6 flex items-center justify-between md:px-8 lg:px-10">
+      <header className="bg-[#00000] text-black py-4 px-6 flex items-center justify-between md:px-8 lg:px-10 z-10 shadow">
         <Link href="/" className="flex items-center gap-2" prefetch={false}>
           <Logo className="w-6 h-6" />
           <span className="text-lg font-bold">TravelSafe</span>
         </Link>
         <nav className="flex items-center gap-4 md:gap-6 lg:gap-8">
           <Link
-            href="#"
+            href="/risk_assesment"
             className="text-sm font-medium hover:underline underline-offset-4 md:text-base"
             prefetch={false}
           >
@@ -166,7 +181,7 @@ export default function IncidentReport() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="flex items-center space-x-1">
-                  <span className="text-sm font-medium text-white">
+                  <span className="text-sm font-medium text-black">
                     Welcome, {session.user?.username}
                   </span>
                   <ChevronDownIcon className="w-4 h-4" />
@@ -176,7 +191,9 @@ export default function IncidentReport() {
                 <DropdownMenuLabel>{session.user?.username}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem onSelect={handleLogout}> Logout </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleLogout}>
+                  Logout
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </>
@@ -291,7 +308,7 @@ export default function IncidentReport() {
                       {suggestions.map((suggestion) => (
                         <li
                           key={suggestion.place_id}
-                          className="p-2 cursor-pointer hover:bg-gray-100"
+                          className="p-2 text-black cursor-pointer hover:bg-gray-100"
                           onClick={() => handleSuggestionClick(suggestion)}
                         >
                           {suggestion.formatted_address}
@@ -330,7 +347,12 @@ export default function IncidentReport() {
                   >
                     Status
                   </label>
-                  <select id="status" name="status" className="block w-full mt-1 p-2 border border-gray-300 rounded" defaultValue="open">
+                  <select
+                    id="status"
+                    name="status"
+                    className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    defaultValue="open"
+                  >
                     <option value="open">Open</option>
                     <option value="resolved">Resolved</option>
                   </select>

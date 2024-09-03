@@ -65,14 +65,24 @@ const DangerZones = () => {
           const markers = L.markerClusterGroup({
             iconCreateFunction: (cluster) => {
               const markers = cluster.getAllChildMarkers();
-              const totalRiskValue = markers.reduce(
-                (sum, marker) => sum + (marker.options.danger || 0),
-                0
-              );
-              const clusterSize = cluster.getChildCount();
-              const riskValueAverage = (totalRiskValue / clusterSize).toFixed(2);
+              let totalRiskValue = 0;
+              let validMarkersCount = 0;
 
+              markers.forEach((marker) => {
+                const riskValue = (marker.options as any).danger;
+                if (!isNaN(riskValue)) {
+                  totalRiskValue += riskValue;
+                  validMarkersCount++;
+                }
+              });
+
+              const riskValueAverage =
+                validMarkersCount > 0
+                  ? (totalRiskValue / validMarkersCount).toFixed(2)
+                  : "0.00";
+              console.log(riskValueAverage)
               return L.divIcon({
+                
                 html: `<div class="custom-cluster-icon">${riskValueAverage}</div>`,
                 className: "",
                 iconSize: L.point(40, 40),

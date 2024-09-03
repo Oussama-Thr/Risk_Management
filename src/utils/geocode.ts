@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-export const geocode = async (query: string) => {
+interface Suggestion {
+  place_id: string;
+  formatted_address: string;
+}
+
+export const geocode = async (query: string): Promise<Suggestion[]> => {
   try {
     const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
       params: {
@@ -9,7 +14,12 @@ export const geocode = async (query: string) => {
         addressdetails: 1,
       },
     });
-    return response.data;
+
+    // Map the response to match the Suggestion type
+    return response.data.map((item: any) => ({
+      place_id: item.osm_id,
+      formatted_address: item.display_name,
+    }));
   } catch (error) {
     console.error('Geocoding error:', error);
     return [];

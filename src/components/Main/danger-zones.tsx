@@ -31,7 +31,6 @@ const DangerZones = () => {
     const fetchDangerData = async () => {
       try {
         const response = await axios.get("/api/danger-zones");
-        console.log("Danger Data:", response.data);
         setDangerData(response.data);
       } catch (error) {
         console.error("Error fetching danger data:", error);
@@ -45,7 +44,7 @@ const DangerZones = () => {
     const initializeMap = async () => {
       try {
         const L = await import("leaflet");
-        require("leaflet.markercluster");
+        await require("leaflet.markercluster");
 
         if (mapRef.current) {
           mapRef.current.remove();
@@ -54,7 +53,7 @@ const DangerZones = () => {
 
         const map = L.map("map", {
           center: [32.2833322, -9.2333324],
-          zoom: 6,
+          zoom: 7,
         });
 
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -79,10 +78,9 @@ const DangerZones = () => {
               const riskValueAverage =
                 validMarkersCount > 0
                   ? (totalRiskValue / validMarkersCount).toFixed(2)
-                  : "0.00";
-              console.log(riskValueAverage)
+                  : 0.00;
+
               return L.divIcon({
-                
                 html: `<div class="custom-cluster-icon">${riskValueAverage}</div>`,
                 className: "",
                 iconSize: L.point(40, 40),

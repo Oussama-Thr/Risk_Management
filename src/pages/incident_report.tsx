@@ -141,6 +141,7 @@ export default function IncidentReport() {
 
   if (!isAuthenticated) {
     router.push("/login");
+    toast.error('You should login first to access this page');
     return null;
   }
 
